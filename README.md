@@ -1,6 +1,6 @@
 # Besu and Web3j example
 
-Simple example on how to use Web3j to interact with Besu.
+Simple example on how to use [Web3j](https://github.com/web3j/web3j) to interact with Besu.
 
 1. Start a Besu running
    docker (https://besu.hyperledger.org/en/stable/HowTo/Get-Started/Installation-Options/Run-Docker-Image/)
