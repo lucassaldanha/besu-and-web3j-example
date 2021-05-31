@@ -7,18 +7,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.besu.Besu;
 import org.web3j.protocol.core.DefaultBlockParameterName;
-import org.web3j.protocol.core.methods.response.EthGetBalance;
 import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert.Unit;
 
 @Component
 public class TransactionSender {
 
-  private static final Logger logger = LoggerFactory.getLogger(BesuAndWeb3jApplication.class);
+  private static final Logger logger = LoggerFactory.getLogger(TransactionSender.class);
 
   private final Besu node;
   private final Credentials aliceCredentials;
@@ -33,16 +33,26 @@ public class TransactionSender {
     this.bobCredentials = bobCredentials;
   }
 
+  @Scheduled(fixedDelay = 10000)
+  void transfer() {
+    try {
+      transferEth(BigDecimal.TEN).thenRun(this::checkBalance).get();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /**
    * Check the balance of Alice and Bob
    */
-  public void checkBalance() {
+  private void checkBalance() {
     CompletableFuture
         .allOf(checkBalanceInternal(aliceCredentials), checkBalanceInternal(bobCredentials));
   }
 
   private CompletableFuture<?> checkBalanceInternal(Credentials credentials) {
-    return node.ethGetBalance(credentials.getAddress(), DefaultBlockParameterName.LATEST).sendAsync()
+    return node.ethGetBalance(credentials.getAddress(), DefaultBlockParameterName.LATEST)
+        .sendAsync()
         .handleAsync((balance, err) -> {
           if (balance != null && err == null) {
             logger.info("Account {} has balance of {}", credentials.getAddress(),
@@ -61,9 +71,10 @@ public class TransactionSender {
 
   /**
    * Transfer ether from Alice to Bob
+   *
    * @param amount the amount of ether to transfer
    */
-  public CompletableFuture<?> transferEth(BigDecimal amount) {
+  private CompletableFuture<?> transferEth(BigDecimal amount) {
     return transferEthInternal(amount, aliceCredentials, bobCredentials.getAddress());
   }
 

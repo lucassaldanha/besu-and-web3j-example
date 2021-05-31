@@ -18,6 +18,7 @@ docker run -p 8545:8545 -p 8546:8546 --mount type=bind,source=/tmp/besu,target=/
 
 The application does the following:
 
-1. Check the balance of Alice and Bob accounts
-2. Create a transfer between Alice and Bob
-3. Check the balance of Alice and Bob after the transfer
+1. Create a transfer transaction between Alice and Bob every 10 seconds (see `TransactionSender`)
+   and checks their balance after the transaction was processed.
+2. Subscribe to the node to receive all new blocks and new transactions added to the chain (
+   see `BlockchainListener`)
